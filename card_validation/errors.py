@@ -1,0 +1,2 @@
+class InvalidSetterException(Exception):
+    pass

@@ -1,0 +1,40 @@
+Django app for validating a credit card number built with Docker.
+
+To install, run `docker-compose build`.
+
+To start app, run `docker-compose up`.
+
+The service has only one endpoint and one HTTP method: GET localhost:8000/card-validation
+
+It can be accessed in the following ways:
+
+localhost:8000/card-validation/<card-number>
+localhost:8000/card-validation/?ccn=<card-number>
+localhost:8000/card-validation?ccn=<card-number>
+
+<card-number> is a numerical string only; including any other type of character will result in the following response:
+
+{
+    is_valid: false,
+    mii: null,
+    mii_details: null,
+    iin: null,
+    scheme: null,
+    account_number: null,
+    checknum: null
+}
+
+Not including a ccn as part of the path or as a query string paramter will result in a 400 error with the message:
+"You must include a credit card number."
+
+As a small bit of security I updated settings to not log any credit card numbers so there would be no physical record of potentially sensitive data. I added logging indicating if a valid or invalid credit card number was submitted. These could be used for temporary stats by parsing the logfiles.
+
+To run tests:
+
+`docker-compose run web python manage.py test`
+
+
+TODO:
+- Allow only https requests, to prevent interception of sensitive information.
+- Use robust stats libraries
+- Allow a user to submit the keys they would like back in the resoponse. Perhaps validity is the only thing that matters for some users.

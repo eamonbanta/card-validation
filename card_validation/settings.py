@@ -23,9 +23,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'er5iq!^ow6x!8qsiq82mh%ekr%**k&qge%18it0oqd%)z))c=('
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
@@ -118,3 +118,44 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+def skip_validation_requests(record):
+    # don't record credit card numbers in logs
+    if record.args[0].startswith('GET /card-validation'):
+        return False
+    return True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'skip_validation_requests': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': skip_validation_requests
+        }
+    },
+    'formatters': {
+        # django's default formatter
+        'django.server': {
+            '()': 'django.utils.log.ServerFormatter',
+            'format': '[%(server_time)s] %(message)s',
+        }
+    },
+    'handlers': {
+        # django's default handler...
+        'django.server': {
+            'level': 'INFO',
+            'filters': ['skip_validation_requests'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'django.server',
+        },
+    },
+    'loggers': {
+        # django's default logger
+        'django.server': {
+            'handlers': ['django.server'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    }
+}
